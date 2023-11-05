@@ -1,0 +1,28 @@
+2023/11/05 13:46:48 main.go:23: Initialize logger success.
+2023/11/05 13:46:52 main.go:40: get pages: 77
+2023/11/05 13:46:52 scrap.go:87: Visited https://www.104.com.tw/jobs/search/?jobcat=2007001016&page=2
+2023/11/05 13:46:52 scrap.go:88: Status Code: 200
+2023/11/05 13:46:52 scrap.go:106: data-job-name : 後端軟體工程師
+2023/11/05 13:46:52 scrap.go:106: data-cust-name : 拓連科技股份有限公司
+2023/11/05 13:46:52 scrap.go:106: data-indcat-desc : 電腦系統整合服務業
+2023/11/05 13:46:52 scrap.go:113: 職缺連結: https://104.com.tw/job/84ooj?jobsource=n104bank2
+2023/11/05 13:46:52 scrap.go:87: Visited https://www.104.com.tw/jobs/search/?jobcat=2007001016
+2023/11/05 13:46:52 scrap.go:88: Status Code: 200
+2023/11/05 13:46:52 scrap.go:106: data-job-name : R&amp;D-GUI軟體工程師(WPF開發工程師)
+2023/11/05 13:46:52 scrap.go:106: data-cust-name : 巨輪興業股份有限公司
+2023/11/05 13:46:52 scrap.go:106: data-indcat-desc : 汽車及其零件製造業
+2023/11/05 13:46:52 scrap.go:113: 職缺連結: https://104.com.tw/job/6svx0?jobsource=hotjob_chr
+2023/11/05 13:46:56 scrap.go:57: JD:  In this position, you will be tasked with designing and developing a cloud service that connects EV chargers worldwide. Your role will encompass the entire application development lifecycle, from initial requirement discussions, code writing, and testing, to releasing features to our customers. Your expertise in distributed systems, interprocess communication, and performance optimization will be instrumental in enhancing our EV charging system.
+
+We are looking for individuals who are open-minded, willing to take initiative, and maintain a can-do attitude in order to adapt to the rapidly growing nature of this business.
+
+• Participate in the entire application lifecycle, focusing on coding and debugging
+• Collaborate with Front-end developers to integrate user-facing elements with server side logic
+• Manage cutting-edge technologies to improve legacy applications
+• Liaise with developers, designers and clients to identify new features
+• Build reusable code and libraries for future use
+• Server performance optimization. 
+• Work with a strong team and build new features as well as improving speed, performance.
+2023/11/05 13:46:56 scrap.go:59: salary:  待遇面議
+2023/11/05 13:46:56 scrap.go:123: 公司連結: https://104.com.tw/job/84ooj?jobsource=n104bank2
+2023/11/05 13:46:56 scrap.go:128: STOP!!
