@@ -49,21 +49,47 @@ func getPages(rodURL, domain, jobCat string) int{
 }
 
 
-func getJobDescription(url string) string{
+func openJobPage(url string) *rod.Page{
 	page := Browser.MustPage(url)
 	page.MustWaitStable()
+	return page
+}
+
+func getJobContent(page *rod.Page) string{
 	jbElement, _ := page.Element(".job-address")
 	jd := jbElement.MustAttribute("jobdescription")
-	Logger.Println("JD: ", *jd)
 	salary := jbElement.MustAttribute("salary")
-	Logger.Println("salary: ", *salary)
-	// salaryMax := jbElement.MustAttribute("salarymax")
-	// Logger.Println("salary max: ", salaryMax)
-	// salaryMin := jbElement.MustAttribute("salarymin")
-	// Logger.Println("salary min: ", salaryMin)
-	jobDescription := fmt.Sprintf("%v\n\n%v", *jd, *salary)
-	// Logger.Println(jobDescription)
+	jobContent := fmt.Sprintf("%v\n%v", *jd, *salary)
+	Logger.Println("jobContent: ", jobContent)
+	return jobContent
+}
+
+func getJobDescription(url string) string{
+	page := openJobPage(url)
+	jobContent := getJobContent(page)
+	jobRequirement := getJobRequirement(page)
+	jobDescription := fmt.Sprintf("%v %v", jobContent, jobRequirement)
 	return jobDescription
+}
+
+func getJobRequirement(page *rod.Page) string {
+	jbElement := page.MustElement(".job-requirement")
+	titles := jbElement.MustElements(".h3")
+	contents := jbElement.MustElements(".t3.mb-0")
+	jobRequirement := ""
+	for idx, title := range titles {
+        text := title.MustText()
+		content := ""		
+		if idx > len(contents) {
+			content = jbElement.MustElement("p").MustText()
+		}else{
+			content = contents[idx].MustText()
+		}
+		jr := fmt.Sprintf("%s: %s", text, content)
+        Logger.Println(jr)
+		jobRequirement += fmt.Sprintf("%s\n", jr)
+    }
+	return jobRequirement
 }
 
 func createCollector(domain string, channel chan<- Job) *colly.Collector{
@@ -121,11 +147,12 @@ func createCollector(domain string, channel chan<- Job) *colly.Collector{
 			companyURL := "https://" + url
 			company.CompanyURL = companyURL
 			Logger.Println("公司連結:", companyURL)
+			// jobRequorement := 
 			company.Description = ""
 		}
 		job.Company = company
 		channel <- job
-		Logger.Panic("STOP!!")
+		// Logger.Panic("STOP!!")
 	})
 	return outerCollector
 }
@@ -135,8 +162,9 @@ func scrape(domain string, pages int, channel chan<- Job, quit chan<- int) {
 	collector := createCollector(domain, channel)
 	// "jobcat" equals "backend" initially, but it can be changed later.
 	url := fmt.Sprintf("https://%v/jobs/search/?jobcat=2007001016", domain)
+	// Used for collecting jobs listed on pages.
 	q, _ := queue.New(
-		2, // Number of consumer threads
+		10, // Number of consumer threads, this means how many pages can be collected simultaneously.
 		&queue.InMemoryQueueStorage{MaxSize: 10000}, // Use default queue storage
 	)
 	for i := 2; i <= pages; i++ {
