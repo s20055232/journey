@@ -68,9 +68,20 @@ func getJobDescription(url string) string{
 	page := openJobPage(url)
 	jobContent := getJobContent(page)
 	jobRequirement := getJobRequirement(page)
-	jobDescription := fmt.Sprintf("%v %v", jobContent, jobRequirement)
+	jobBenefit := getJobBenefit(page)
+	jobDescription := fmt.Sprintf("%v\n%v\n%v", jobContent, jobRequirement, jobBenefit)
+	Logger.Printf("最後的資訊: %s\n", jobDescription)
 	return jobDescription
 }
+
+func getJobBenefit(page *rod.Page) string{
+	jbElement, _ := page.Element(".benefits")
+	benefit := jbElement.MustElement("p").MustText()
+	benefit = fmt.Sprintf("福利制度: %s", benefit)
+	Logger.Println(benefit)
+	return benefit
+}
+
 
 func getJobRequirement(page *rod.Page) string {
 	jbElement := page.MustElement(".job-requirement")
