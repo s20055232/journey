@@ -49,7 +49,7 @@ func getPages(rodURL, domain, jobCat string) int{
 }
 
 
-func openJobPage(url string) *rod.Page{
+func openPage(url string) *rod.Page{
 	page := Browser.MustPage(url)
 	page.MustWaitStable()
 	return page
@@ -65,7 +65,7 @@ func getJobContent(page *rod.Page) string{
 }
 
 func getJobDescription(url string) string{
-	page := openJobPage(url)
+	page := openPage(url)
 	jobContent := getJobContent(page)
 	jobRequirement := getJobRequirement(page)
 	jobBenefit := getJobBenefit(page)
@@ -101,6 +101,49 @@ func getJobRequirement(page *rod.Page) string {
 		jobRequirement += fmt.Sprintf("%s\n", jr)
     }
 	return jobRequirement
+}
+
+func getCompanyInfo(url string) string{
+	page := openPage(url)
+	companyIntro := getCompanyIntro(page)
+	companyServe := getCompanyServe(page)
+	companyBenefits := getCompanyBenefits(page)
+	companyInfo := companyIntro + companyServe + companyBenefits
+	Logger.Println("Company: ", companyInfo)
+	return companyInfo
+}
+
+func getCompanyIntro(page *rod.Page) string{
+	intro, _ := page.Element("#intro")
+	ps := intro.MustElements("p")
+	companyInfo := ""
+	for _, p := range ps {
+		companyInfo = p.MustText() + "\n"
+	}
+	Logger.Println("公司介紹：", companyInfo)
+	return companyInfo
+}
+
+func getCompanyServe(page *rod.Page) string{
+	serve, _ := page.Element("#serve")
+	ps := serve.MustElements("p")
+	companyInfo := ""
+	for _, p := range ps {
+		companyInfo = p.MustText() + "\n"
+	}
+	Logger.Println("公司服務：", companyInfo)
+	return companyInfo
+}
+
+func getCompanyBenefits(page *rod.Page) string {
+	benefits, _ := page.Element("#benefits")
+	ps := benefits.MustElements("p")
+	companyInfo := ""
+	for _, p := range ps {
+		companyInfo = p.MustText() + "\n"
+	}
+	Logger.Println("公司福利：", companyInfo)
+	return companyInfo
 }
 
 func createCollector(domain string, channel chan<- Job) *colly.Collector{
@@ -154,12 +197,11 @@ func createCollector(domain string, channel chan<- Job) *colly.Collector{
 
 		companyLink := e.ChildAttr("ul.b-list-inline.b-clearfix li a", "href")
 		if companyLink != "" {
-			url, _ := strings.CutPrefix(jobLink, "//www.")
+			url, _ := strings.CutPrefix(companyLink, "//www.")
 			companyURL := "https://" + url
 			company.CompanyURL = companyURL
 			Logger.Println("公司連結:", companyURL)
-			// jobRequorement := 
-			company.Description = ""
+			company.Description = getCompanyInfo(companyURL)
 		}
 		job.Company = company
 		channel <- job
