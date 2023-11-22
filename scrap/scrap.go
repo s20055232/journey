@@ -12,10 +12,9 @@ import (
 	"github.com/gocolly/colly/queue"
 )
 
-
 var Browser *rod.Browser
 
-func initializeBrowser(rodURL string){
+func initializeBrowser(rodURL string) {
 	// This example is to launch a browser remotely, not connect to a running browser remotely,
 	// to connect to a running browser check the "../connect-browser" example.
 	// Rod provides a docker image for beginners, run the below to start a launcher.Manager:
@@ -36,7 +35,7 @@ func initializeBrowser(rodURL string){
 	Browser = rod.New().Client(l.MustClient()).MustConnect()
 }
 
-func getPages(rodURL, domain, jobCat string) int{
+func getPages(rodURL, domain, jobCat string) int {
 	initializeBrowser(rodURL)
 	// You may want to start a server to watch the screenshots of the remote browser.
 	// launcher.Open(browser.ServeMonitor(""))
@@ -48,14 +47,13 @@ func getPages(rodURL, domain, jobCat string) int{
 	return pages
 }
 
-
-func openPage(url string) *rod.Page{
+func openPage(url string) *rod.Page {
 	page := Browser.MustPage(url)
 	page.MustWaitStable()
 	return page
 }
 
-func getJobContent(page *rod.Page) string{
+func getJobContent(page *rod.Page) string {
 	jbElement, _ := page.Element(".job-address")
 	jd := jbElement.MustAttribute("jobdescription")
 	salary := jbElement.MustAttribute("salary")
@@ -64,7 +62,7 @@ func getJobContent(page *rod.Page) string{
 	return jobContent
 }
 
-func getJobDescription(url string) string{
+func getJobDescription(url string) string {
 	page := openPage(url)
 	jobContent := getJobContent(page)
 	jobRequirement := getJobRequirement(page)
@@ -74,7 +72,7 @@ func getJobDescription(url string) string{
 	return jobDescription
 }
 
-func getJobBenefit(page *rod.Page) string{
+func getJobBenefit(page *rod.Page) string {
 	jbElement, _ := page.Element(".benefits")
 	benefit := jbElement.MustElement("p").MustText()
 	benefit = fmt.Sprintf("福利制度: %s", benefit)
@@ -82,28 +80,27 @@ func getJobBenefit(page *rod.Page) string{
 	return benefit
 }
 
-
 func getJobRequirement(page *rod.Page) string {
 	jbElement := page.MustElement(".job-requirement")
 	titles := jbElement.MustElements(".h3")
 	contents := jbElement.MustElements(".t3.mb-0")
 	jobRequirement := ""
 	for idx, title := range titles {
-        text := title.MustText()
-		content := ""		
+		text := title.MustText()
+		content := ""
 		if idx > len(contents) {
 			content = jbElement.MustElement("p").MustText()
-		}else{
+		} else {
 			content = contents[idx].MustText()
 		}
 		jr := fmt.Sprintf("%s: %s", text, content)
-        Logger.Println(jr)
+		Logger.Println(jr)
 		jobRequirement += fmt.Sprintf("%s\n", jr)
-    }
+	}
 	return jobRequirement
 }
 
-func getCompanyInfo(url string) string{
+func getCompanyInfo(url string) string {
 	page := openPage(url)
 	companyIntro := getCompanyIntro(page)
 	companyServe := getCompanyServe(page)
@@ -113,7 +110,7 @@ func getCompanyInfo(url string) string{
 	return companyInfo
 }
 
-func getCompanyIntro(page *rod.Page) string{
+func getCompanyIntro(page *rod.Page) string {
 	intro, _ := page.Element("#intro")
 	ps := intro.MustElements("p")
 	companyInfo := ""
@@ -124,7 +121,7 @@ func getCompanyIntro(page *rod.Page) string{
 	return companyInfo
 }
 
-func getCompanyServe(page *rod.Page) string{
+func getCompanyServe(page *rod.Page) string {
 	serve, _ := page.Element("#serve")
 	ps := serve.MustElements("p")
 	companyInfo := ""
@@ -146,7 +143,7 @@ func getCompanyBenefits(page *rod.Page) string {
 	return companyInfo
 }
 
-func createCollector(domain string, channel chan<- Job) *colly.Collector{
+func createCollector(domain string, channel chan<- Job) *colly.Collector {
 	outerCollector := colly.NewCollector(
 		// colly.AllowedDomains(domain),
 		colly.Async(true),
@@ -158,7 +155,7 @@ func createCollector(domain string, channel chan<- Job) *colly.Collector{
 	})
 	outerCollector.OnRequest(
 		func(r *colly.Request) { log.Println("Visiting", r.URL) })
-		outerCollector.OnError(func(rp *colly.Response, err error) {
+	outerCollector.OnError(func(rp *colly.Response, err error) {
 		Logger.Println("Something went wrong:", err)
 		Logger.Println("Status Code:", rp.StatusCode)
 		Logger.Println("Body:", string(rp.Body))
@@ -209,7 +206,6 @@ func createCollector(domain string, channel chan<- Job) *colly.Collector{
 	})
 	return outerCollector
 }
-
 
 func scrape(domain string, pages int, channel chan<- Job, quit chan<- int) {
 	collector := createCollector(domain, channel)

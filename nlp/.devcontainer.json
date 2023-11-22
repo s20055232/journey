@@ -1,0 +1,7 @@
+{
+  "name": "nlp",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "nlp",
+  "shutdownAction": "none",
+  "workspaceFolder": "/workspace/nlp"
+}

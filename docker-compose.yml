@@ -1,0 +1,103 @@
+version: '3.8'
+
+volumes:
+  postgres-data:
+  rabbit-data:
+  # kafka_data:
+    # driver: local
+
+
+services:
+  app:
+    build: 
+      context: ./scrap
+      dockerfile: ./.devcontainer/Dockerfile
+    env_file:
+        # Ensure that the variables in .env match the same variables in devcontainer.json
+        - .env
+    volumes:
+      - .:/workspace:cached
+    networks:
+      - journey
+    # network_mode: service:app
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+    links:
+      - nlp
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    # network_mode: service:db
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally. 
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  nlp:
+    build: 
+      context: ./nlp
+      dockerfile: ./.devcontainer/Dockerfile
+    env_file: 
+        - .env
+    volumes:
+      - .:/workspace:cached
+    networks:
+      - journey
+    # network_mode: service:app
+    # Overrides default command so things don't shut down after the process ends.
+    # command: sleep infinity
+
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    env_file:
+      # Ensure that the variables in .env match the same variables in devcontainer.json
+      - .env
+    networks:
+      - journey
+    # network_mode: service:app
+
+  rod:
+    image: ghcr.io/go-rod/rod:latest
+    # ports:
+      # - 7317:7317
+    networks:
+      - journey
+    # network_mode: service:app
+    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  rabbit:
+    image: rabbitmq:management
+    hostname: journey
+    # 設定 name 會出錯，不知道為什麼
+    # name: rabbitmq
+    networks:
+      - journey
+    # ports:
+      # - "5672:5672"
+      # - "15672:15672"
+    # volumes:
+      # - rabbit-data:/var/lib/rabbitmq/mnesia/rabbit@rabbitMQ
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  # kafka:
+  #   image: docker.io/bitnami/kafka:3.6
+  #   networks:
+  #     - journey
+  #   volumes:
+  #     - "kafka_data:/bitnami"
+  #   environment:
+  #     # KRaft settings
+  #     - KAFKA_CFG_NODE_ID=0
+  #     - KAFKA_CFG_PROCESS_ROLES=controller,broker
+  #     - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+  #     # Listeners
+  #     - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+  #     - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
+  #     - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+  #     - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+  #     - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
+networks:
+  journey:

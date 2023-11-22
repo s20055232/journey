@@ -7,19 +7,19 @@ import (
 
 type Job struct {
 	gorm.Model
-	Name       string
-	JobURL string
+	Name        string
+	JobURL      string
 	Description string
-	Company    Company
+	Company     Company
 }
 
 type Company struct {
 	gorm.Model
-	Name string
-	Industry   string
-	CompanyURL string
+	Name        string
+	Industry    string
+	CompanyURL  string
 	Description string
-	JobID uint
+	JobID       uint
 }
 
 func connect() *gorm.DB {
