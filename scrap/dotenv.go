@@ -14,10 +14,10 @@ var domain string
 func loadDotEnv(path ...string) {
 	var err error
 	if len(path) == 0 {
-		err = godotenv.Load()	
-	}else if len(path) > 1 {
+		err = godotenv.Load()
+	} else if len(path) > 1 {
 		log.Fatal("Too many .env files")
-	}else {
+	} else {
 		err = godotenv.Load(path[0])
 	}
 

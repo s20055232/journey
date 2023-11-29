@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 )
+
 func TestLoadDotEnv(t *testing.T) {
 	// 創建臨時的 .env 文件
 	tmpfile, err := os.CreateTemp("", ".env")

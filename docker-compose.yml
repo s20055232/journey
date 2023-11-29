@@ -11,7 +11,7 @@ services:
   app:
     build: 
       context: ./scrap
-      dockerfile: ./.devcontainer/Dockerfile
+      dockerfile: ./Dockerfile
     env_file:
         # Ensure that the variables in .env match the same variables in devcontainer.json
         - .env
@@ -24,6 +24,9 @@ services:
     command: sleep infinity
     links:
       - nlp
+      - db
+      - rod
+      - rabbit
     # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
     # network_mode: service:db
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally. 
@@ -32,7 +35,7 @@ services:
   nlp:
     build: 
       context: ./nlp
-      dockerfile: ./.devcontainer/Dockerfile
+      dockerfile: ./Dockerfile
     env_file: 
         - .env
     volumes:
@@ -57,8 +60,8 @@ services:
 
   rod:
     image: ghcr.io/go-rod/rod:latest
-    # ports:
-      # - 7317:7317
+    ports:
+      - 7317:7317
     networks:
       - journey
     # network_mode: service:app

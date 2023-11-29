@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -13,6 +14,14 @@ import (
 )
 
 var Browser *rod.Browser
+
+func scrapLimit() *colly.LimitRule {
+	return &colly.LimitRule{
+		// DomainGlob:  "*104.com.tw*",
+		// Parallelism: 2,
+		RandomDelay: 10 * time.Second,
+	}
+}
 
 func initializeBrowser(rodURL string) {
 	// This example is to launch a browser remotely, not connect to a running browser remotely,
@@ -48,6 +57,9 @@ func getPages(rodURL, domain, jobCat string) int {
 }
 
 func openPage(url string) *rod.Page {
+	n := rand.Intn(30)
+	Logger.Println("I'm sleeping: ", n)
+	time.Sleep(time.Duration(n))
 	page := Browser.MustPage(url)
 	page.MustWaitStable()
 	return page
@@ -58,7 +70,7 @@ func getJobContent(page *rod.Page) string {
 	jd := jbElement.MustAttribute("jobdescription")
 	salary := jbElement.MustAttribute("salary")
 	jobContent := fmt.Sprintf("%v\n%v", *jd, *salary)
-	Logger.Println("jobContent: ", jobContent)
+	// Logger.Println("jobContent: ", jobContent)
 	return jobContent
 }
 
@@ -68,7 +80,7 @@ func getJobDescription(url string) string {
 	jobRequirement := getJobRequirement(page)
 	jobBenefit := getJobBenefit(page)
 	jobDescription := fmt.Sprintf("%v\n%v\n%v", jobContent, jobRequirement, jobBenefit)
-	Logger.Printf("最後的資訊: %s\n", jobDescription)
+	// Logger.Printf("最後的資訊: %s\n", jobDescription)
 	return jobDescription
 }
 
@@ -76,7 +88,7 @@ func getJobBenefit(page *rod.Page) string {
 	jbElement, _ := page.Element(".benefits")
 	benefit := jbElement.MustElement("p").MustText()
 	benefit = fmt.Sprintf("福利制度: %s", benefit)
-	Logger.Println(benefit)
+	// Logger.Println(benefit)
 	return benefit
 }
 
@@ -94,7 +106,7 @@ func getJobRequirement(page *rod.Page) string {
 			content = contents[idx].MustText()
 		}
 		jr := fmt.Sprintf("%s: %s", text, content)
-		Logger.Println(jr)
+		// Logger.Println(jr)
 		jobRequirement += fmt.Sprintf("%s\n", jr)
 	}
 	return jobRequirement
@@ -106,7 +118,7 @@ func getCompanyInfo(url string) string {
 	companyServe := getCompanyServe(page)
 	companyBenefits := getCompanyBenefits(page)
 	companyInfo := companyIntro + companyServe + companyBenefits
-	Logger.Println("Company: ", companyInfo)
+	// Logger.Println("Company: ", companyInfo)
 	return companyInfo
 }
 
@@ -117,7 +129,7 @@ func getCompanyIntro(page *rod.Page) string {
 	for _, p := range ps {
 		companyInfo = p.MustText() + "\n"
 	}
-	Logger.Println("公司介紹：", companyInfo)
+	// Logger.Println("公司介紹：", companyInfo)
 	return companyInfo
 }
 
@@ -128,7 +140,7 @@ func getCompanyServe(page *rod.Page) string {
 	for _, p := range ps {
 		companyInfo = p.MustText() + "\n"
 	}
-	Logger.Println("公司服務：", companyInfo)
+	// Logger.Println("公司服務：", companyInfo)
 	return companyInfo
 }
 
@@ -139,7 +151,7 @@ func getCompanyBenefits(page *rod.Page) string {
 	for _, p := range ps {
 		companyInfo = p.MustText() + "\n"
 	}
-	Logger.Println("公司福利：", companyInfo)
+	// Logger.Println("公司福利：", companyInfo)
 	return companyInfo
 }
 
@@ -148,11 +160,7 @@ func createCollector(domain string, channel chan<- Job) *colly.Collector {
 		// colly.AllowedDomains(domain),
 		colly.Async(true),
 	)
-	outerCollector.Limit(&colly.LimitRule{
-		// DomainGlob:  "*104.com.tw*",
-		Parallelism: 2,
-		RandomDelay: 10 * time.Second,
-	})
+	outerCollector.Limit(scrapLimit())
 	outerCollector.OnRequest(
 		func(r *colly.Request) { log.Println("Visiting", r.URL) })
 	outerCollector.OnError(func(rp *colly.Response, err error) {
@@ -202,7 +210,6 @@ func createCollector(domain string, channel chan<- Job) *colly.Collector {
 		}
 		job.Company = company
 		channel <- job
-		// Logger.Panic("STOP!!")
 	})
 	return outerCollector
 }
@@ -213,7 +220,7 @@ func scrape(domain string, pages int, channel chan<- Job, quit chan<- int) {
 	url := fmt.Sprintf("https://%v/jobs/search/?jobcat=2007001016", domain)
 	// Used for collecting jobs listed on pages.
 	q, _ := queue.New(
-		10, // Number of consumer threads, this means how many pages can be collected simultaneously.
+		3, // Number of consumer threads, this means how many pages can be collected simultaneously.
 		&queue.InMemoryQueueStorage{MaxSize: 10000}, // Use default queue storage
 	)
 	for i := 2; i <= pages; i++ {
